@@ -1,0 +1,31 @@
+:root {
+  /* HSL Colors */
+  --primary: 250 100% 65%; /* Soft Electric Violet */
+  --primary-dark: 250 100% 55%;
+  --secondary: 180 100% 45%; /* Cyan */
+  
+  --bg-dark: 240 10% 4%; /* Very dark gunmetal */
+  --bg-card: 240 10% 10%;
+  --bg-input: 240 10% 14%;
+  
+  --text-main: 0 0% 100%;
+  --text-scnd: 240 10% 70%;
+  
+  --glass-bg: hsla(240, 10%, 10%, 0.7);
+  --glass-border: hsla(0, 0%, 100%, 0.1);
+  --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+
+  --success: 145 65% 40%;
+  --error: 350 80% 55%;
+  
+  --font-main: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background-color: hsl(var(--bg-dark));
+  color: hsl(var(--text-main));
+  font-family: var(--font-main);
+  -webkit-font-smoothing: antialiased;
+}
