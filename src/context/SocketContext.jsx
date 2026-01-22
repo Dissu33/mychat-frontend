@@ -11,7 +11,8 @@ export const SocketProvider = ({ children }) => {
     useEffect(() => {
         if (user) {
             console.log('Initializing socket for user:', user._id);
-            const newSocket = io('http://localhost:5000', {
+            const socketUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+            const newSocket = io(socketUrl, {
                 transports: ['websocket'], // Force websocket
                 reconnection: true
             });

@@ -34,7 +34,7 @@ const Profile = ({ onClose, userId = null }) => {
                         setSavedName(contact.savedName);
                     }
                 })
-                .catch(() => {});
+                .catch(() => { });
         }
     }, [userId, isOwnProfile]);
 
@@ -102,9 +102,7 @@ const Profile = ({ onClose, userId = null }) => {
             formData.append('file', file);
             formData.append('type', 'profile');
 
-            const res = await api.post('/auth/profile/picture', formData, {
-                headers: { 'Content-Type': 'multipart/form-data' }
-            });
+            const res = await api.post('/auth/profile/picture', formData);
 
             setProfileUser(prev => ({ ...prev, profilePicture: res.data.profilePicture }));
             if (updateUser) {
@@ -113,6 +111,21 @@ const Profile = ({ onClose, userId = null }) => {
         } catch (err) {
             console.error('Failed to upload profile picture:', err);
             alert('Failed to upload profile picture');
+        }
+    };
+
+    const handleRemovePhoto = async () => {
+        if (!window.confirm('Are you sure you want to remove your profile picture?')) return;
+
+        try {
+            const res = await api.delete('/auth/profile/picture');
+            setProfileUser(prev => ({ ...prev, profilePicture: null }));
+            if (updateUser) {
+                updateUser(res.data.user);
+            }
+        } catch (err) {
+            console.error('Failed to remove profile picture:', err);
+            alert('Failed to remove profile picture');
         }
     };
 
@@ -135,11 +148,12 @@ const Profile = ({ onClose, userId = null }) => {
         );
     }
 
-    const displayName = isOwnProfile 
+    const displayName = isOwnProfile
         ? (profileUser.displayName || profileUser.phoneNumber || 'Unknown')
         : (savedName || profileUser.displayName || profileUser.phoneNumber || 'Unknown');
-    const profilePicUrl = profileUser.profilePicture 
-        ? `http://localhost:5000${profileUser.profilePicture}` 
+
+    const profilePicUrl = profileUser.profilePicture
+        ? `${import.meta.env.VITE_API_URL}${profileUser.profilePicture}`
         : null;
 
     return (
@@ -157,10 +171,10 @@ const Profile = ({ onClose, userId = null }) => {
                 justifyContent: 'center',
                 padding: '1rem'
             }}
-            onClick={onClose}
+                onClick={onClose}
             >
                 <div style={{
-                    background: 'var(--bg-primary)',
+                    background: 'hsl(var(--bg-card))',
                     borderRadius: '12px',
                     width: '100%',
                     maxWidth: '500px',
@@ -168,7 +182,7 @@ const Profile = ({ onClose, userId = null }) => {
                     overflow: 'auto',
                     boxShadow: '0 8px 32px rgba(0,0,0,0.3)'
                 }}
-                onClick={(e) => e.stopPropagation()}
+                    onClick={(e) => e.stopPropagation()}
                 >
                     {/* Header */}
                     <div style={{
@@ -177,7 +191,7 @@ const Profile = ({ onClose, userId = null }) => {
                         display: 'flex',
                         alignItems: 'center',
                         gap: '1rem',
-                        background: 'var(--bg-primary)',
+                        background: 'hsl(var(--bg-card))',
                         position: 'sticky',
                         top: 0,
                         zIndex: 10
@@ -187,7 +201,7 @@ const Profile = ({ onClose, userId = null }) => {
                             style={{
                                 background: 'transparent',
                                 border: 'none',
-                                color: 'var(--text-primary)',
+                                color: 'hsl(var(--text-main))',
                                 cursor: 'pointer',
                                 fontSize: '1.5rem',
                                 padding: '0.5rem'
@@ -204,7 +218,7 @@ const Profile = ({ onClose, userId = null }) => {
                                 style={{
                                     background: 'transparent',
                                     border: 'none',
-                                    color: 'var(--text-primary)',
+                                    color: 'hsl(var(--text-main))',
                                     cursor: 'pointer',
                                     fontSize: '1.2rem',
                                     padding: '0.5rem'
@@ -216,7 +230,6 @@ const Profile = ({ onClose, userId = null }) => {
                         )}
                     </div>
 
-                    {/* Profile Picture */}
                     <div style={{
                         padding: '2rem',
                         display: 'flex',
@@ -225,28 +238,91 @@ const Profile = ({ onClose, userId = null }) => {
                         gap: '1rem'
                     }}>
                         <div
-                            onClick={() => isOwnProfile && setShowImagePreview(true)}
-                            style={{
-                                width: '150px',
-                                height: '150px',
-                                borderRadius: '50%',
-                                background: profilePicUrl
-                                    ? `url(${profilePicUrl})`
-                                    : 'linear-gradient(135deg, hsl(var(--secondary)), hsl(var(--primary)))',
-                                backgroundSize: 'cover',
-                                backgroundPosition: 'center',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                fontSize: '4rem',
-                                fontWeight: 'bold',
-                                cursor: isOwnProfile ? 'pointer' : 'default',
-                                border: '4px solid var(--glass-border)',
-                                boxShadow: '0 4px 12px rgba(0,0,0,0.2)'
-                            }}
+                            style={{ position: 'relative' }}
+                            onMouseEnter={(e) => isOwnProfile && (e.currentTarget.lastChild.style.opacity = 1)}
+                            onMouseLeave={(e) => isOwnProfile && (e.currentTarget.lastChild.style.opacity = 0)}
                         >
-                            {!profilePicUrl && (displayName[0] || '?').toUpperCase()}
+                            <div
+                                onClick={() => isOwnProfile && setShowImagePreview(true)}
+                                style={{
+                                    width: '150px',
+                                    height: '150px',
+                                    borderRadius: '50%',
+                                    backgroundImage: profilePicUrl
+                                        ? `url(${profilePicUrl})`
+                                        : 'linear-gradient(135deg, hsl(var(--secondary)), hsl(var(--primary)))',
+                                    backgroundSize: 'cover',
+                                    backgroundPosition: 'center',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    fontSize: '4rem',
+                                    fontWeight: 'bold',
+                                    cursor: isOwnProfile ? 'pointer' : 'default',
+                                    border: '4px solid var(--glass-border)',
+                                    boxShadow: '0 4px 12px rgba(0,0,0,0.2)'
+                                }}
+                            >
+                                {!profilePicUrl && (displayName[0] || '?').toUpperCase()}
+                            </div>
+
+                            {isOwnProfile && (
+                                <div
+                                    onClick={() => fileInputRef.current?.click()}
+                                    style={{
+                                        position: 'absolute',
+                                        top: 0, left: 0, right: 0, bottom: 0,
+                                        borderRadius: '50%',
+                                        background: 'rgba(0,0,0,0.5)',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        color: 'white',
+                                        fontSize: '0.9rem',
+                                        opacity: 0,
+                                        transition: 'opacity 0.2s',
+                                        cursor: 'pointer',
+                                        flexDirection: 'column',
+                                        gap: '5px'
+                                    }}
+                                >
+                                    <span>📸 Change</span>
+                                </div>
+                            )}
                         </div>
+
+                        {isOwnProfile && (
+                            <div style={{ display: 'flex', gap: '1rem' }}>
+                                <button
+                                    className="btn"
+                                    onClick={() => fileInputRef.current?.click()}
+                                    style={{
+                                        padding: '0.5rem 1rem',
+                                        fontSize: '0.9rem',
+                                        background: 'hsl(var(--bg-input))'
+                                    }}
+                                >
+                                    Change Photo
+                                </button>
+                                {profilePicUrl && (
+                                    <button
+                                        className="btn"
+                                        onClick={handleRemovePhoto}
+                                        style={{
+                                            padding: '0.5rem 1rem',
+                                            fontSize: '0.9rem',
+                                            background: 'transparent',
+                                            border: '1px solid var(--error)',
+                                            color: 'hsl(var(--error))',
+                                            boxShadow: 'none'
+                                        }}
+                                    >
+                                        Remove
+                                    </button>
+                                )}
+                            </div>
+                        )}
+
                         {isOwnProfile && (
                             <input
                                 ref={fileInputRef}
@@ -293,10 +369,10 @@ const Profile = ({ onClose, userId = null }) => {
                                             width: '100%',
                                             minHeight: '80px',
                                             padding: '0.75rem',
-                                            background: 'var(--bg-input)',
+                                            background: 'hsl(var(--bg-input))',
                                             border: '1px solid var(--glass-border)',
                                             borderRadius: '8px',
-                                            color: 'var(--text-primary)',
+                                            color: 'hsl(var(--text-main))',
                                             fontSize: '0.95rem',
                                             resize: 'vertical',
                                             fontFamily: 'inherit'
@@ -309,7 +385,7 @@ const Profile = ({ onClose, userId = null }) => {
                                         alignItems: 'center',
                                         marginTop: '0.5rem'
                                     }}>
-                                        <div style={{ fontSize: '0.75rem', color: 'var(--text-scnd)' }}>
+                                        <div style={{ fontSize: '0.75rem', color: 'hsl(var(--text-scnd))' }}>
                                             {aboutText.length}/139
                                         </div>
                                         <div style={{ display: 'flex', gap: '0.5rem' }}>
@@ -323,7 +399,7 @@ const Profile = ({ onClose, userId = null }) => {
                                                     background: 'transparent',
                                                     border: '1px solid var(--glass-border)',
                                                     borderRadius: '8px',
-                                                    color: 'var(--text-primary)',
+                                                    color: 'hsl(var(--text-main))',
                                                     cursor: 'pointer'
                                                 }}
                                             >
@@ -334,10 +410,10 @@ const Profile = ({ onClose, userId = null }) => {
                                                 disabled={isSaving || !hasAboutChanges}
                                                 style={{
                                                     padding: '0.5rem 1rem',
-                                                    background: hasAboutChanges ? 'hsl(var(--primary))' : 'var(--bg-input)',
+                                                    background: hasAboutChanges ? 'hsl(var(--primary))' : 'hsl(var(--bg-input))',
                                                     border: 'none',
                                                     borderRadius: '8px',
-                                                    color: hasAboutChanges ? 'white' : 'var(--text-scnd)',
+                                                    color: hasAboutChanges ? 'white' : 'hsl(var(--text-scnd))',
                                                     cursor: (isSaving || !hasAboutChanges) ? 'not-allowed' : 'pointer',
                                                     opacity: (isSaving || !hasAboutChanges) ? 0.6 : 1,
                                                     transition: 'all 0.2s'
@@ -364,14 +440,14 @@ const Profile = ({ onClose, userId = null }) => {
                                     onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
                                 >
                                     {profileUser.about || (
-                                        <span style={{ color: 'var(--text-scnd)', fontStyle: 'italic' }}>
+                                        <span style={{ color: 'hsl(var(--text-scnd))', fontStyle: 'italic' }}>
                                             Tap to add about text
                                         </span>
                                     )}
                                 </div>
                             )
                         ) : (
-                            <div style={{ padding: '1rem', color: profileUser.about ? 'var(--text-primary)' : 'var(--text-scnd)' }}>
+                            <div style={{ padding: '1rem', color: profileUser.about ? 'hsl(var(--text-main))' : 'hsl(var(--text-scnd))' }}>
                                 {profileUser.about || 'No status available'}
                             </div>
                         )}
@@ -381,7 +457,7 @@ const Profile = ({ onClose, userId = null }) => {
                     <div style={{ padding: '1rem' }}>
                         <div style={{
                             fontSize: '0.85rem',
-                            color: 'var(--text-scnd)',
+                            color: 'hsl(var(--text-scnd))',
                             marginBottom: '0.5rem',
                             paddingLeft: '1rem'
                         }}>
@@ -389,7 +465,7 @@ const Profile = ({ onClose, userId = null }) => {
                         </div>
                         <div style={{
                             padding: '1rem',
-                            color: 'var(--text-primary)'
+                            color: 'hsl(var(--text-main))'
                         }}>
                             {profileUser.phoneNumber}
                         </div>

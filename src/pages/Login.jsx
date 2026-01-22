@@ -40,7 +40,7 @@ const Login = () => {
     };
 
     return (
-        <div className="center-screen">
+        <div className="app-container">
             <div className="glass-panel animate-fade-in" style={{ padding: '2rem', width: '100%', maxWidth: '400px' }}>
                 <h2 style={{ textAlign: 'center', marginBottom: '2rem' }}>
                     {step === 1 ? 'Welcome Back' : 'Verify Login'}
