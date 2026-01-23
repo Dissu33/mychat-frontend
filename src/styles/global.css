@@ -1,5 +1,11 @@
 @import './variables.css';
 
+:root {
+    --glass-border: hsla(0, 0%, 100%, 0.08);
+    --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+    --primary-glow: hsla(var(--primary), 0.5);
+}
+
 /* Global Reset */
 * {
     box-sizing: border-box;
@@ -12,6 +18,9 @@ body,
     width: 100%;
     margin: 0;
     padding: 0;
+    font-size: 16px;
+    /* Prevent iOS zoom */
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
 }
 
 /* App Layout */
@@ -39,13 +48,128 @@ body,
     width: 100%;
     height: 100%;
     max-height: 900px;
-    /* Limit height on huge screens */
-    background: var(--glass-bg);
+    max-height: 900px;
+    background: hsla(240, 10%, 10%, 0.4);
     border: 1px solid var(--glass-border);
-    backdrop-filter: blur(20px);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
     border-radius: 24px;
     overflow: hidden;
     box-shadow: var(--glass-shadow);
+}
+
+/* Premium Login Styles */
+.glass-panel {
+    background: hsla(240, 10%, 12%, 0.6);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow:
+        0 4px 6px -1px rgba(0, 0, 0, 0.1),
+        0 2px 4px -1px rgba(0, 0, 0, 0.06),
+        inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+    border-radius: 24px;
+    position: relative;
+    overflow: hidden;
+}
+
+.glass-panel::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+}
+
+.input-label {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: hsl(var(--text-scnd));
+    font-weight: 500;
+    font-size: 0.9rem;
+    letter-spacing: 0.02em;
+    transition: color 0.2s;
+}
+
+.input-group:focus-within .input-label {
+    color: hsl(var(--primary));
+}
+
+.input-field {
+    width: 100%;
+    height: 56px;
+    padding: 0 1.25rem;
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid var(--glass-border);
+    border-radius: 12px;
+    color: white;
+    font-size: 1rem;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    outline: none;
+}
+
+.input-field::placeholder {
+    color: rgba(255, 255, 255, 0.3);
+}
+
+.input-field:focus {
+    background: rgba(0, 0, 0, 0.3);
+    border-color: hsl(var(--primary));
+    box-shadow: 0 0 0 4px hsla(var(--primary), 0.15);
+}
+
+.btn {
+    width: 100%;
+    height: 56px;
+    border: none;
+    border-radius: 12px;
+    font-size: 1rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    color: white;
+    cursor: pointer;
+    background: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--secondary)));
+    box-shadow: 0 4px 12px hsla(var(--primary), 0.25);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+.btn::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to bottom, rgba(255, 255, 255, 0.15), transparent);
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px hsla(var(--primary), 0.35);
+}
+
+.btn:hover::after {
+    opacity: 1;
+}
+
+.btn:active {
+    transform: translateY(0);
+}
+
+.btn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.otp-input {
+    letter-spacing: 0.5rem;
+    text-align: center;
+    font-size: 1.5rem;
+    font-weight: 700;
 }
 
 @media (max-width: 900px) {
@@ -55,18 +179,63 @@ body,
 }
 
 @media (max-width: 768px) {
+    .app-container {
+        padding: 0;
+        background-color: var(--bg-dark);
+        /* Full screen on mobile */
+    }
+
     .chat-layout {
         border-radius: 0;
         grid-template-columns: 1fr;
-        max-height: 100%;
+        max-height: 100dvh;
+        /* Dynamic viewport height */
+        height: 100dvh;
+        border: none;
     }
 
+    /* Mobile Navigation Logic */
     .chat-layout.chat-active .sidebar {
         display: none;
     }
 
+    .chat-layout.chat-active .chat-window {
+        display: flex;
+        animation: slideInRight 0.3s ease-out;
+    }
+
     .chat-layout:not(.chat-active) .chat-window {
         display: none;
+    }
+
+    .chat-layout:not(.chat-active) .sidebar {
+        display: flex;
+        width: 100%;
+        animation: slideInLeft 0.3s ease-out;
+    }
+}
+
+@keyframes slideInRight {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideInLeft {
+    from {
+        transform: translateX(-100%);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateX(0);
+        opacity: 1;
     }
 }
 
@@ -242,27 +411,32 @@ body,
 }
 
 .message {
-    max-width: 70%;
-    padding: 0.8rem 1.2rem;
+    max-width: 75%;
+    padding: 10px 16px;
     position: relative;
     font-size: 0.95rem;
     line-height: 1.5;
     word-wrap: break-word;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    margin-bottom: 4px;
 }
 
 .message.sent {
     align-self: flex-end;
-    background: var(--msg-me);
-    color: var(--msg-me-text);
-    border-radius: 18px 18px 4px 18px;
+    background: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--secondary)));
+    color: white;
+    border-radius: 18px 18px 2px 18px;
+    box-shadow: 0 4px 15px -5px hsl(var(--primary) / 0.4);
 }
 
 .message.received {
     align-self: flex-start;
-    background: var(--msg-other);
-    color: var(--msg-other-text);
-    border-radius: 18px 18px 18px 4px;
+    background: hsla(240, 5%, 26%, 0.8);
+    /* Dark gray glass */
+    backdrop-filter: blur(5px);
+    color: hsl(var(--text-main));
+    border-radius: 18px 18px 18px 2px;
+    border: 1px solid hsla(0, 0%, 100%, 0.05);
 }
 
 .message-time {
@@ -428,4 +602,42 @@ body,
 /* Utility Animations */
 .fade-in {
     animation: fadeIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Typing Indicator Animation */
+.typing-indicator {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 8px 12px;
+    background: hsla(240, 5%, 26%, 0.6);
+    border-radius: 18px;
+    width: fit-content;
+    margin-bottom: 1rem;
+    margin-left: 1.5rem;
+}
+
+.typing-dot {
+    width: 8px;
+    height: 8px;
+    background-color: hsl(var(--text-main));
+    border-radius: 50%;
+    animation: bounce 1.4s infinite ease-in-out both;
+}
+
+.typing-dot:nth-child(1) {
+    animation-delay: -0.32s;
+}
+
+.typing-dot:nth-child(2) {
+    animation-delay: -0.16s;
+}
+
+@keyframes bounce {
+    0%, 80%, 100% { 
+        transform: scale(0);
+    }
+    40% { 
+        transform: scale(1);
+    }
 }

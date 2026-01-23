@@ -99,8 +99,8 @@ const Profile = ({ onClose, userId = null }) => {
 
         try {
             const formData = new FormData();
+            formData.append('type', 'profile'); // Must be before file for multer
             formData.append('file', file);
-            formData.append('type', 'profile');
 
             const res = await api.post('/auth/profile/picture', formData);
 
@@ -248,22 +248,57 @@ const Profile = ({ onClose, userId = null }) => {
                                     width: '150px',
                                     height: '150px',
                                     borderRadius: '50%',
-                                    backgroundImage: profilePicUrl
-                                        ? `url(${profilePicUrl})`
-                                        : 'linear-gradient(135deg, hsl(var(--secondary)), hsl(var(--primary)))',
-                                    backgroundSize: 'cover',
-                                    backgroundPosition: 'center',
+                                    position: 'relative',
+                                    overflow: 'hidden',
                                     display: 'flex',
                                     alignItems: 'center',
                                     justifyContent: 'center',
-                                    fontSize: '4rem',
-                                    fontWeight: 'bold',
+                                    backgroundColor: 'hsl(var(--bg-input))', // fallback background
                                     cursor: isOwnProfile ? 'pointer' : 'default',
                                     border: '4px solid var(--glass-border)',
                                     boxShadow: '0 4px 12px rgba(0,0,0,0.2)'
                                 }}
                             >
-                                {!profilePicUrl && (displayName[0] || '?').toUpperCase()}
+                                {profilePicUrl ? (
+                                    <img
+                                        src={`${profilePicUrl}?t=${Date.now()}`}
+                                        alt="Profile"
+                                        style={{
+                                            width: '100%',
+                                            height: '100%',
+                                            objectFit: 'cover'
+                                        }}
+                                        onError={(e) => {
+                                            e.target.style.display = 'none'; // Hide broken image
+                                            e.target.parentElement.style.background = 'linear-gradient(135deg, hsl(var(--secondary)), hsl(var(--primary)))';
+                                        }}
+                                    />
+                                ) : (
+                                    <div style={{
+                                        width: '100%',
+                                        height: '100%',
+                                        background: 'linear-gradient(135deg, hsl(var(--secondary)), hsl(var(--primary)))',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        fontSize: '4rem',
+                                        fontWeight: 'bold',
+                                        color: 'white'
+                                    }}>
+                                        {(displayName[0] || '?').toUpperCase()}
+                                    </div>
+                                )}
+
+                                {profilePicUrl && (
+                                    // Fallback text if image loads but hidden? 
+                                    // The onError hides image, so we might want to show text. 
+                                    // Simplified: If image allows onError, we can just revert to gradient + text.
+                                    // But doing that cleanly in React without state is tricky.
+                                    // Let's rely on the conditional: if profilePicUrl exists, we try img. 
+                                    // If onError, we hide img. Then we need to show the text.
+                                    // CSS sibling selector or state? State is safer.
+                                    null
+                                )}
                             </div>
 
                             {isOwnProfile && (

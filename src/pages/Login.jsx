@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
 import '../styles/global.css';
@@ -15,8 +16,23 @@ const Login = () => {
         e.preventDefault();
         setLoading(true);
         setError('');
+
+        // Default country code logic
+        let phoneToSend = phoneNumber.trim();
+        if (!phoneToSend.startsWith('+')) {
+            phoneToSend = `+91${phoneToSend}`;
+        }
+
         try {
-            await api.post('/auth/send-otp', { phoneNumber });
+            await api.post('/auth/send-otp', { phoneNumber: phoneToSend });
+            // Update local state to show the user what was sent (optional, but good for UX)
+            // setPhoneNumber(phoneToSend); 
+            // actually better to keep user input but send modified, 
+            // OR update it so they know. Let's send the modified one and keep state as is for now 
+            // unless we want to show it in the next step.
+            // valid point: verify-otp needs the same phone number. 
+            // So we MUST update the state or store the formatted one.
+            setPhoneNumber(phoneToSend);
             setStep(2);
         } catch (err) {
             setError(err.response?.data?.error || 'Failed to send OTP');
@@ -41,175 +57,184 @@ const Login = () => {
 
     return (
         <div className="app-container" style={{
-            background: 'radial-gradient(circle at 50% 10%, hsl(var(--primary) / 0.2), transparent 40%), radial-gradient(circle at 90% 90%, hsl(var(--secondary) / 0.1), transparent 40%)',
+            background: 'radial-gradient(circle at 50% 10%, hsl(var(--primary) / 0.15), transparent 50%), radial-gradient(circle at 90% 90%, hsl(var(--secondary) / 0.1), transparent 50%)',
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'center'
+            justifyContent: 'center',
+            overflow: 'hidden',
+            position: 'relative'
         }}>
-            <div className="glass-panel animate-fade-in" style={{
-                padding: '3rem 2rem',
+            {/* Background Glow */}
+            <div style={{
+                position: 'absolute',
+                top: '50%',
+                left: '50%',
+                transform: 'translate(-50%, -50%)',
                 width: '100%',
-                maxWidth: '420px',
-                border: '1px solid var(--glass-border)',
-                boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
-                backdropFilter: 'blur(20px)',
-                borderRadius: '24px'
-            }}>
+                height: '100%',
+                maxWidth: '600px',
+                maxHeight: '600px',
+                background: 'radial-gradient(circle, hsla(var(--primary), 0.15) 0%, transparent 70%)',
+                filter: 'blur(60px)',
+                zIndex: 0,
+                pointerEvents: 'none'
+            }} />
+            <motion.div
+                initial={{ opacity: 0, y: 30, scale: 0.98 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+                className="glass-panel"
+                style={{
+                    padding: '3rem 2.5rem',
+                    width: '100%',
+                    maxWidth: '440px',
+                    margin: '1rem' // Mobile spacing
+                }}
+            >
                 <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
-                    <div style={{
-                        width: '64px',
-                        height: '64px',
-                        background: 'linear-gradient(135deg, hsl(var(--primary)), hsl(var(--secondary)))',
-                        borderRadius: '16px',
-                        margin: '0 auto 1.5rem',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        boxShadow: '0 10px 25px -5px hsl(var(--primary) / 0.5)'
-                    }}>
-                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <motion.div
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        transition={{ type: "spring", stiffness: 200, damping: 15, delay: 0.2 }}
+                        style={{
+                            width: '72px',
+                            height: '72px',
+                            background: 'linear-gradient(135deg, hsl(var(--primary)), hsl(var(--secondary)))',
+                            borderRadius: '20px',
+                            margin: '0 auto 1.5rem',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            boxShadow: '0 10px 25px -5px hsl(var(--primary) / 0.5)'
+                        }}
+                    >
+                        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                             <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
                         </svg>
-                    </div>
+                    </motion.div>
                     <h1 style={{
-                        fontSize: '2rem',
-                        fontWeight: '700',
-                        background: 'linear-gradient(to right, white, #a5b4fc)',
+                        fontSize: '2.5rem',
+                        fontWeight: '800',
+                        letterSpacing: '-0.02em',
+                        background: 'linear-gradient(to right, #fff, #a5b4fc)',
                         WebkitBackgroundClip: 'text',
                         WebkitTextFillColor: 'transparent',
-                        marginBottom: '0.5rem'
+                        marginBottom: '0.75rem'
                     }}>
                         {step === 1 ? 'Welcome Back' : 'Verify Identity'}
                     </h1>
-                    <p style={{ color: 'var(--text-scnd)', fontSize: '0.95rem' }}>
-                        {step === 1 ? 'Enter your phone to get started' : `Code sent to ${phoneNumber}`}
+                    <p style={{ color: 'var(--text-scnd)', fontSize: '1rem', lineHeight: '1.5' }}>
+                        {step === 1 ? 'Enter your phone number to continue' : `We sent a code to ${phoneNumber}`}
                     </p>
                 </div>
 
                 {error && (
-                    <div style={{
-                        background: 'hsla(0, 84%, 60%, 0.1)',
-                        border: '1px solid hsla(0, 84%, 60%, 0.2)',
-                        color: '#f87171',
-                        padding: '0.75rem',
-                        borderRadius: '12px',
-                        marginBottom: '1.5rem',
-                        textAlign: 'center',
-                        fontSize: '0.9rem'
-                    }}>
+                    <motion.div
+                        initial={{ opacity: 0, x: -10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        className="error-message"
+                        style={{
+                            background: 'hsla(0, 84%, 60%, 0.1)',
+                            border: '1px solid hsla(0, 84%, 60%, 0.2)',
+                            color: '#f87171',
+                            padding: '0.75rem',
+                            borderRadius: '12px',
+                            marginBottom: '1.5rem',
+                            textAlign: 'center',
+                            fontSize: '0.9rem'
+                        }}
+                    >
                         {error}
-                    </div>
+                    </motion.div>
                 )}
 
-                {step === 1 ? (
-                    <form onSubmit={handleSendOtp}>
-                        <div style={{ marginBottom: '2rem' }}>
-                            <label style={{
-                                display: 'block',
-                                marginBottom: '0.75rem',
-                                color: 'var(--text-primary)',
-                                fontWeight: '500',
-                                fontSize: '0.9rem'
-                            }}>
-                                Phone Number
-                            </label>
-                            <div style={{ position: 'relative' }}>
+                <AnimatePresence mode="wait">
+                    {step === 1 ? (
+                        <motion.form
+                            key="step1"
+                            initial={{ opacity: 0, x: -20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: 20 }}
+                            transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }} // "Smooth" ease
+                            onSubmit={handleSendOtp}
+                        >
+                            <div style={{ marginBottom: '2rem' }} className="input-group">
+                                <label className="input-label">
+                                    Phone Number
+                                </label>
+                                <div style={{ position: 'relative' }}>
+                                    <input
+                                        type="tel" // optimized keyboard
+                                        className="input-field"
+                                        placeholder="+91 99999 99999"
+                                        value={phoneNumber}
+                                        onChange={(e) => setPhoneNumber(e.target.value)}
+                                        required
+                                    />
+                                </div>
+                            </div>
+                            <motion.button
+                                whileHover={{ scale: 1.02 }}
+                                whileTap={{ scale: 0.98 }}
+                                type="submit"
+                                className="btn"
+                                disabled={loading}
+                            >
+                                {loading ? 'Sending Code...' : 'Continue'}
+                            </motion.button>
+                        </motion.form>
+                    ) : (
+                        <motion.form
+                            key="step2"
+                            initial={{ opacity: 0, x: 20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: -20 }}
+                            transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+                            onSubmit={handleVerifyOtp}
+                        >
+                            <div style={{ marginBottom: '2rem' }} className="input-group">
+                                <label className="input-label">
+                                    Verification Code
+                                </label>
                                 <input
                                     type="text"
-                                    className="input-field"
-                                    placeholder="+91 12345 67890"
-                                    value={phoneNumber}
-                                    onChange={(e) => setPhoneNumber(e.target.value)}
+                                    inputMode="numeric"
+                                    className="input-field otp-input"
+                                    placeholder="• • • • • •"
+                                    value={otp}
+                                    onChange={(e) => setOtp(e.target.value)}
                                     required
-                                    style={{
-                                        height: '50px',
-                                        fontSize: '1rem',
-                                        paddingLeft: '1rem',
-                                        background: 'rgba(0,0,0,0.2)',
-                                        borderColor: 'var(--glass-border)'
-                                    }}
                                 />
+
                             </div>
-                        </div>
-                        <button type="submit" className="btn" style={{
-                            width: '100%',
-                            height: '50px',
-                            fontSize: '1rem',
-                            fontWeight: '600',
-                            background: 'linear-gradient(135deg, hsl(var(--primary)), hsl(var(--secondary)))',
-                            boxShadow: '0 4px 15px -3px hsl(var(--primary) / 0.3)'
-                        }} disabled={loading}>
-                            {loading ? 'Sending Code...' : 'Continue'}
-                        </button>
-                    </form>
-                ) : (
-                    <form onSubmit={handleVerifyOtp}>
-                        <div style={{ marginBottom: '2rem' }}>
-                            <label style={{
-                                display: 'block',
-                                marginBottom: '0.75rem',
-                                color: 'var(--text-primary)',
-                                fontWeight: '500',
-                                fontSize: '0.9rem'
-                            }}>
-                                Verification Code
-                            </label>
-                            <input
-                                type="text"
-                                className="input-field"
-                                placeholder="• • • • • •"
-                                value={otp}
-                                onChange={(e) => setOtp(e.target.value)}
-                                required
+                            <motion.button
+                                whileHover={{ scale: 1.02 }}
+                                whileTap={{ scale: 0.98 }}
+                                type="submit"
+                                className="btn"
+                                disabled={loading}
+                            >
+                                {loading ? 'Verifying...' : 'Verify Entry'}
+                            </motion.button>
+                            <div
+                                onClick={() => setStep(1)}
                                 style={{
-                                    height: '50px',
-                                    fontSize: '1.25rem',
                                     textAlign: 'center',
-                                    letterSpacing: '0.5rem',
-                                    background: 'rgba(0,0,0,0.2)',
-                                    borderColor: 'var(--glass-border)'
+                                    marginTop: '1.5rem',
+                                    cursor: 'pointer',
+                                    color: 'var(--text-scnd)',
+                                    fontSize: '0.9rem',
+                                    transition: 'color 0.2s'
                                 }}
-                            />
-                            <div style={{
-                                marginTop: '1rem',
-                                padding: '0.75rem',
-                                background: 'rgba(255,255,255,0.05)',
-                                borderRadius: '8px',
-                                fontSize: '0.8rem',
-                                color: 'var(--text-scnd)',
-                                textAlign: 'center'
-                            }}>
-                                <span style={{ opacity: 0.7 }}>DEV MODE:</span> Use <strong style={{ color: 'hsl(var(--primary))' }}>000000</strong> or <strong style={{ color: 'hsl(var(--primary))' }}>123456</strong>
+                                onMouseEnter={(e) => e.target.style.color = 'var(--text-primary)'}
+                                onMouseLeave={(e) => e.target.style.color = 'var(--text-scnd)'}
+                            >
+                                ← Use different number
                             </div>
-                        </div>
-                        <button type="submit" className="btn" style={{
-                            width: '100%',
-                            height: '50px',
-                            fontSize: '1rem',
-                            fontWeight: '600',
-                            background: 'linear-gradient(135deg, hsl(var(--primary)), hsl(var(--secondary)))',
-                            boxShadow: '0 4px 15px -3px hsl(var(--primary) / 0.3)'
-                        }} disabled={loading}>
-                            {loading ? 'Verifying...' : 'Verify Entry'}
-                        </button>
-                        <div
-                            onClick={() => setStep(1)}
-                            style={{
-                                textAlign: 'center',
-                                marginTop: '1.5rem',
-                                cursor: 'pointer',
-                                color: 'var(--text-scnd)',
-                                fontSize: '0.9rem',
-                                transition: 'color 0.2s'
-                            }}
-                            onMouseEnter={(e) => e.target.style.color = 'var(--text-primary)'}
-                            onMouseLeave={(e) => e.target.style.color = 'var(--text-scnd)'}
-                        >
-                            ← Use different number
-                        </div>
-                    </form>
-                )}
-            </div>
+                        </motion.form>
+                    )}
+                </AnimatePresence>
+            </motion.div>
 
             {/* Footer */}
             <div style={{
